@@ -3,93 +3,350 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>GAME PORTAL</title>
+    <title>FIREWORKS SHOOTER v1.2</title>
     <style>
         body {
-            background-color: #080808;
+            background-color: #050510;
             color: #fff;
             font-family: 'Segoe UI', sans-serif;
-            text-align: center;
-            margin: 0; padding: 20px;
+            margin: 0; padding: 0;
+            overflow: hidden;
+            touch-action: none;
+            user-select: none;
         }
-        h1 {
-            color: cyan;
-            text-shadow: 0 0 10px cyan;
-            font-style: italic;
-            margin-bottom: 30px;
-        }
-        .menu-container {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            max-width: 400px;
-            margin: 0 auto;
-        }
-        .game-card {
-            background: #1a1a1a;
-            border: 2px solid #333;
-            border-radius: 15px;
-            padding: 20px;
-            text-decoration: none;
-            color: white;
-            transition: transform 0.1s, border-color 0.1s;
-            display: block;
-        }
-        .game-card:active {
-            transform: scale(0.95);
-            border-color: yellow;
-        }
-        .title {
-            font-size: 1.5rem;
-            font-weight: bold;
-            display: block;
-            margin-bottom: 5px;
-        }
-        .desc {
-            font-size: 0.9rem;
-            color: #aaa;
-            display: block;
-        }
-        
-        /* 各ゲームのイメージカラー */
-        .color-reflex { color: #ff5555; border-left: 5px solid #ff5555; }
-        .color-rapid { color: #55ff55; border-left: 5px solid #55ff55; }
-        .color-aim { color: #55ffff; border-left: 5px solid #55ffff; }
 
-        footer {
-            margin-top: 40px;
-            color: #444;
-            font-size: 0.8rem;
+        #game-area {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            cursor: none;
+            overflow: hidden;
         }
+
+        /* 照準：!importantを使って古いCSSを強制上書き */
+        #crosshair {
+            position: absolute;
+            top: 0 !important;
+            left: 0 !important;
+            width: 50px; height: 50px;
+            border: 2px solid cyan;
+            border-radius: 50%;
+            pointer-events: none;
+            will-change: transform;
+            z-index: 100;
+            /* 初期位置を画面外へ飛ばさない */
+            transform: translate(-100px, -100px); 
+        }
+        #crosshair::after {
+            content: ''; position: absolute; top: 50%; left: 50%;
+            width: 6px; height: 6px; background: cyan;
+            transform: translate(-50%, -50%); border-radius: 50%;
+        }
+
+        /* 的（ターゲット） */
+        .target {
+            position: absolute;
+            top: 0 !important;
+            left: 0 !important;
+            width: 50px; height: 50px;
+            background: radial-gradient(circle, #ff5555 0%, #990000 100%);
+            border: 2px solid white;
+            border-radius: 50%;
+            box-shadow: 0 0 15px red;
+            will-change: transform;
+            z-index: 50;
+        }
+
+        /* 爆散パーティクル */
+        .particle {
+            position: absolute;
+            top: 0 !important;
+            left: 0 !important;
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 60;
+        }
+
+        #flash {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: white; opacity: 0; pointer-events: none; z-index: 999;
+        }
+
+        #ui-layer {
+            position: absolute; top: 10px; left: 10px; z-index: 200;
+            text-shadow: 1px 1px 2px black;
+        }
+        .hud-val { font-size: 24px; font-weight: bold; color: gold; }
+
+        #menu-screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 300;
+        }
+        button {
+            background: linear-gradient(45deg, #ff00cc, #3333ff);
+            color: white; border: none; padding: 15px 40px;
+            font-size: 20px; font-weight: bold; border-radius: 30px;
+            margin-top: 20px; cursor: pointer;
+            box-shadow: 0 0 20px rgba(255, 0, 204, 0.5);
+        }
+        button:disabled { background: #555; box-shadow: none; }
+        
+        .setting-row { margin: 10px; width: 80%; max-width: 300px; text-align: left;}
+        input[type=range] { width: 100%; }
+
     </style>
 </head>
 <body>
 
-    <h1>MY GAME PORTAL</h1>
-
-    <div class="menu-container">
-
-        <a href="reflex_mobile.html" class="game-card color-reflex">
-            <span class="title">⚡ REFLEX TEST</span>
-            <span class="desc">瞬発力・反射神経測定</span>
-        </a>
-
-        <a href="index2.html" class="game-card color-rapid">
-            <span class="title">🔘 RAPID EDGE OMEGA</span>
-            <span class="desc">連打・正確性トレーニング</span>
-        </a>
-
-        <a href="aim_game.html" class="game-card color-aim">
-            <span class="title">🎆 FIREWORKS SHOOTER</span>
-            <span class="desc">エイム練習・射撃ゲーム</span>
-        </a>
-
+    <div id="game-area">
+        <div id="flash"></div>
+        <div id="crosshair"></div>
+        
+        <div id="ui-layer">
+            <div>SCORE: <span id="score-disp" class="hud-val">0</span></div>
+            <div>TIME: <span id="time-disp" class="hud-val">60.0</span></div>
+        </div>
     </div>
 
-    <footer>
-        Created by Shibata<br>
-        Powered by Web Technology
-    </footer>
+    <div id="menu-screen">
+        <h1 style="color:cyan; font-style:italic;">
+            FIREWORKS SHOOTER <span style="font-size:16px; color:red; border:1px solid red; padding:2px;">v1.2</span>
+        </h1>
+        <p style="color:#ccc">Aim & Shoot!</p>
+        
+        <div id="status-msg" style="color:yellow; font-size:14px;">コントローラー未接続</div>
 
+        <div class="setting-row">
+            <label>感度 (Sensitivity): <span id="val-sens">50</span></label>
+            <input type="range" id="sens-slider" min="10" max="100" value="50" oninput="updateSettings()">
+        </div>
+
+        <button id="start-btn" onclick="startGame()" disabled>GAME START</button>
+        <div style="margin-top:15px; font-size:12px; color:#888">
+            操作: 左スティックで移動 / ボタンで発射
+        </div>
+    </div>
+
+<script>
+    const crosshair = document.getElementById('crosshair');
+    const gameArea = document.getElementById('game-area');
+    const flashEl = document.getElementById('flash');
+    
+    let sensitivity = 7.5;
+    let isPlaying = false;
+    let score = 0;
+    let timeLeft = 60.0;
+    
+    // 初期座標
+    let cx = window.innerWidth / 2;
+    let cy = window.innerHeight / 2;
+
+    let targets = [];
+    let particles = [];
+    
+    let gamepadIndex = null;
+    let wasShooting = false;
+
+    // 起動時に強制的にスタイルをリセットする（キャッシュ対策）
+    window.onload = function() {
+        crosshair.style.top = "0px";
+        crosshair.style.left = "0px";
+    };
+
+    function updateSettings() {
+        let val = document.getElementById('sens-slider').value;
+        document.getElementById('val-sens').innerText = val;
+        sensitivity = val * 0.15;
+    }
+
+    window.addEventListener("gamepadconnected", (e) => {
+        gamepadIndex = e.gamepad.index;
+        document.getElementById('status-msg').innerText = "CONNECTED: " + e.gamepad.id;
+        document.getElementById('status-msg').style.color = "#00FF00";
+        document.getElementById('start-btn').disabled = false;
+    });
+
+    let lastTime = 0;
+    function loop() {
+        if(!isPlaying) return;
+        requestAnimationFrame(loop);
+
+        const now = performance.now();
+        const dt = (now - lastTime) / 1000;
+        lastTime = now;
+
+        timeLeft -= dt;
+        if(timeLeft <= 0) {
+            timeLeft = 0;
+            endGame();
+        }
+        document.getElementById('time-disp').innerText = timeLeft.toFixed(1);
+
+        handleInput();
+        updateTargets();
+        updateParticles();
+
+        // 描画更新
+        crosshair.style.transform = `translate(${cx}px, ${cy}px) translate(-50%, -50%)`;
+    }
+
+    function handleInput() {
+        const gp = navigator.getGamepads()[gamepadIndex];
+        if(!gp) return;
+
+        let dx = gp.axes[0];
+        let dy = gp.axes[1];
+        if(Math.abs(dx) < 0.1) dx = 0;
+        if(Math.abs(dy) < 0.1) dy = 0;
+
+        cx += dx * sensitivity;
+        cy += dy * sensitivity;
+
+        // 画面内制限
+        cx = Math.max(25, Math.min(window.innerWidth - 25, cx));
+        cy = Math.max(25, Math.min(window.innerHeight - 25, cy));
+
+        let isPressed = gp.buttons.some(b => b.pressed);
+        if(isPressed && !wasShooting) {
+            shoot();
+            wasShooting = true;
+        }
+        if(!isPressed) {
+            wasShooting = false;
+        }
+    }
+
+    function shoot() {
+        flashEl.style.opacity = 0.3;
+        setTimeout(() => flashEl.style.opacity = 0, 50);
+        
+        crosshair.style.width = "60px";
+        crosshair.style.height = "60px";
+        setTimeout(() => {
+            crosshair.style.width = "50px";
+            crosshair.style.height = "50px";
+        }, 100);
+
+        for(let i = targets.length - 1; i >= 0; i--) {
+            let t = targets[i];
+            let dist = Math.hypot(cx - t.x, cy - t.y);
+            
+            if(dist < 50) {
+                createExplosion(t.x, t.y);
+                removeTarget(i);
+                score += 100;
+                document.getElementById('score-disp').innerText = score;
+                spawnTarget();
+                break;
+            }
+        }
+    }
+
+    function createExplosion(x, y) {
+        const colors = ['#ff0', '#f0f', '#0ff', '#0f0', '#fff'];
+        for(let i=0; i<20; i++) {
+            let p = document.createElement('div');
+            p.className = 'particle';
+            p.style.backgroundColor = colors[Math.floor(Math.random()*colors.length)];
+            // 強制左上配置（JSで動かすため）
+            p.style.top = "0px";
+            p.style.left = "0px";
+            
+            gameArea.appendChild(p);
+            
+            let angle = Math.random() * Math.PI * 2;
+            let speed = Math.random() * 5 + 2;
+            let vx = Math.cos(angle) * speed;
+            let vy = Math.sin(angle) * speed;
+            
+            particles.push({ el: p, x: x, y: y, vx: vx, vy: vy, life: 1.0 });
+        }
+    }
+
+    function updateParticles() {
+        for(let i = particles.length - 1; i >= 0; i--) {
+            let p = particles[i];
+            p.x += p.vx;
+            p.y += p.vy;
+            p.life -= 0.03;
+            
+            p.el.style.transform = `translate(${p.x}px, ${p.y}px)`;
+            p.el.style.opacity = p.life;
+            
+            if(p.life <= 0) {
+                p.el.remove();
+                particles.splice(i, 1);
+            }
+        }
+    }
+
+    function spawnTarget() {
+        let t = document.createElement('div');
+        t.className = 'target';
+        // 強制左上配置
+        t.style.top = "0px";
+        t.style.left = "0px";
+        
+        let tx = Math.random() * (window.innerWidth - 100) + 50;
+        let ty = Math.random() * (window.innerHeight - 200) + 50;
+        
+        gameArea.appendChild(t);
+        
+        let vx = (Math.random() - 0.5) * 4;
+        let vy = (Math.random() - 0.5) * 4;
+        
+        targets.push({ el: t, x: tx, y: ty, vx: vx, vy: vy });
+    }
+
+    function updateTargets() {
+        targets.forEach(t => {
+            t.x += t.vx;
+            t.y += t.vy;
+            
+            if(t.x < 25 || t.x > window.innerWidth - 25) t.vx *= -1;
+            if(t.y < 25 || t.y > window.innerHeight - 25) t.vy *= -1;
+            
+            t.el.style.transform = `translate(${t.x}px, ${t.y}px) translate(-50%, -50%)`;
+        });
+    }
+
+    function removeTarget(index) {
+        targets[index].el.remove();
+        targets.splice(index, 1);
+    }
+
+    function startGame() {
+        document.getElementById('menu-screen').style.display = 'none';
+        isPlaying = true;
+        score = 0;
+        timeLeft = 60.0;
+        document.getElementById('score-disp').innerText = 0;
+        
+        targets.forEach(t => t.el.remove());
+        targets = [];
+        spawnTarget();
+        
+        cx = window.innerWidth / 2;
+        cy = window.innerHeight / 2;
+        
+        lastTime = performance.now();
+        loop();
+    }
+
+    function endGame() {
+        isPlaying = false;
+        alert(`TIME UP!\nSCORE: ${score}`);
+        document.getElementById('menu-screen').style.display = 'flex';
+    }
+
+    window.addEventListener('resize', () => {
+        cx = Math.max(25, Math.min(window.innerWidth - 25, cx));
+        cy = Math.max(25, Math.min(window.innerHeight - 25, cy));
+    });
+
+</script>
 </body>
 </html>
