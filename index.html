@@ -1,379 +1,95 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>瞬発力チェッカー (修正版)</title>
-<style>
-  body {
-    font-family: sans-serif;
-    text-align: center;
-    background-color: #ffffff; /* 白背景 */
-    color: #333;
-    padding: 10px;
-    margin: 0;
-  }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>GAME PORTAL</title>
+    <style>
+        body {
+            background-color: #080808;
+            color: #fff;
+            font-family: 'Segoe UI', sans-serif;
+            text-align: center;
+            margin: 0; padding: 20px;
+        }
+        h1 {
+            color: cyan;
+            text-shadow: 0 0 10px cyan;
+            font-style: italic;
+            margin-bottom: 30px;
+        }
+        .menu-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        .game-card {
+            background: #1a1a1a;
+            border: 2px solid #333;
+            border-radius: 15px;
+            padding: 20px;
+            text-decoration: none;
+            color: white;
+            transition: transform 0.1s, border-color 0.1s;
+            display: block;
+        }
+        .game-card:active {
+            transform: scale(0.95);
+            border-color: yellow;
+        }
+        .title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            display: block;
+            margin-bottom: 5px;
+        }
+        .desc {
+            font-size: 0.9rem;
+            color: #aaa;
+            display: block;
+        }
+        
+        /* 各ゲームのイメージカラー */
+        .color-reflex { color: #ff5555; border-left: 5px solid #ff5555; }
+        .color-rapid { color: #55ff55; border-left: 5px solid #55ff55; }
+        .color-aim { color: #55ffff; border-left: 5px solid #55ffff; }
 
-  /* 設定エリア */
-  .settings {
-    margin-bottom: 15px;
-    background: #f0f0f0;
-    padding: 10px;
-    border-radius: 8px;
-    display: inline-block;
-  }
-  select { font-size: 1rem; padding: 5px; }
-
-  /* メイン表示エリア */
-  #display-area {
-    background-color: #fafafa;
-    border: 4px solid #ccc;
-    border-radius: 15px;
-    height: 300px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    margin: 10px auto;
-    max-width: 600px;
-    position: relative;
-  }
-
-  /* 待機中のテキスト */
-  #message-text {
-    font-size: 2rem;
-    font-weight: bold;
-    color: #888;
-  }
-
-  /* アイコン表示エリア */
-  .icon-wrapper {
-    display: none; /* JSで表示切り替え */
-    width: 100%;
-    height: 100%;
-    align-items: center;
-    justify-content: center;
-  }
-
-  /* SVGアイコンの共通設定 */
-  svg {
-    width: 180px;
-    height: 180px;
-    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2));
-  }
-
-  /* 文字アイコン（Switch/Xbox用） */
-  .char-icon {
-    width: 150px;
-    height: 150px;
-    border-radius: 50%;
-    background: white;
-    border: 8px solid #333;
-    color: #333;
-    font-size: 80px;
-    font-weight: bold;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  /* L/Rボタン */
-  .shoulder-icon {
-    width: 200px; height: 90px;
-    border: 6px solid #333;
-    border-radius: 20px;
-    font-size: 3rem;
-    font-weight: bold;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #fff;
-  }
-
-  /* スティック（前回のまま、少し見やすく調整） */
-  .stick-bg {
-    width: 150px; height: 150px;
-    background: #e0e0e0;
-    border-radius: 50%;
-    position: relative;
-    border: 5px solid #bbb;
-  }
-  .stick-head {
-    width: 90px; height: 90px;
-    background: #555;
-    border-radius: 50%;
-    position: absolute;
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-  }
-  .arrow {
-    position: absolute;
-    font-size: 60px;
-    color: #ff5722; /* 濃いオレンジ */
-    font-weight: bold;
-    text-shadow: 2px 2px 0px #fff;
-    z-index: 10;
-  }
-
-  /* 状態クラス */
-  .waiting #message-text { display: block; }
-  .waiting .icon-wrapper { display: none; }
-  
-  .go #message-text { display: none; }
-  .go .icon-wrapper { display: flex; }
-
-  .result #message-text { display: block; font-size: 4rem; color: #2e7d32; }
-  .result .icon-wrapper { display: none; }
-
-  /* その他UI */
-  #status { font-weight: bold; padding: 5px; color: #666; background: #eee; display: inline-block; border-radius: 4px;}
-  #score-board { margin: 20px auto; width: 100%; max-width: 600px; border-collapse: collapse; background: #fff; }
-  #score-board th, #score-board td { border: 1px solid #ccc; padding: 8px; }
-  button { padding: 12px 24px; font-size: 1.2rem; cursor: pointer; background-color: #007bff; color: white; border: none; border-radius: 5px; margin-top: 10px; }
-  button:disabled { background-color: #ccc; }
-  .foul { color: red; font-weight: bold; }
-</style>
+        footer {
+            margin-top: 40px;
+            color: #444;
+            font-size: 0.8rem;
+        }
+    </style>
 </head>
 <body>
-<a href="index2.html" style="font-size:20px; color:blue;">連打測定アプリへ移動</a>
-  <h1>🎮 反射神経トレ (SVG版)</h1>
-  
-  <div class="settings">
-    <label>モード: </label>
-    <select id="mode-select">
-      <option value="ps">PSタイプ (×○□△)</option>
-      <option value="switch">Switchタイプ (B A Y X)</option>
-      <option value="xbox">Xboxタイプ (A B X Y)</option>
-    </select>
-  </div>
-  <br>
 
-  <div id="status">コントローラーのボタンを押してください</div>
+    <h1>MY GAME PORTAL</h1>
 
-  <div id="display-area" class="waiting">
-    <div id="message-text">ボタンでスタート</div>
-    <div id="icon-container" class="icon-wrapper"></div>
-  </div>
+    <div class="menu-container">
 
-  <button id="startBtn" disabled>計測スタート</button>
+        <a href="reflex_mobile.html" class="game-card color-reflex">
+            <span class="title">⚡ REFLEX TEST</span>
+            <span class="desc">瞬発力・反射神経測定</span>
+        </a>
 
-  <div style="margin-top:15px;">
-    最高記録: <span id="best-time" style="color: #ff9800; font-weight: bold; font-size: 1.8rem;">--.---</span>
-  </div>
+        <a href="index2.html" class="game-card color-rapid">
+            <span class="title">🔘 RAPID EDGE OMEGA</span>
+            <span class="desc">連打・正確性トレーニング</span>
+        </a>
 
-  <table id="score-board">
-    <thead><tr><th>No.</th><th>指示</th><th>時間</th><th>判定</th></tr></thead>
-    <tbody id="history-body"></tbody>
-  </table>
+        <a href="aim_game.html" class="game-card color-aim">
+            <span class="title">🎆 FIREWORKS SHOOTER</span>
+            <span class="desc">エイム練習・射撃ゲーム</span>
+        </a>
 
-<script>
-  // === 変数定義 ===
-  const displayArea = document.getElementById('display-area');
-  const messageText = document.getElementById('message-text');
-  const iconContainer = document.getElementById('icon-container');
-  const startBtn = document.getElementById('startBtn');
-  const statusEl = document.getElementById('status');
-  const historyBody = document.getElementById('history-body');
-  const bestTimeEl = document.getElementById('best-time');
-  const modeSelect = document.getElementById('mode-select');
+    </div>
 
-  let gamepadIndex = null;
-  let state = 'IDLE'; 
-  let startTime = 0;
-  let targetAction = null;
-  let measurementTimer = null;
-  let bestTime = Infinity;
-  let trialCount = 0;
-  let currentMode = 'ps';
+    <footer>
+        Created by Shibata<br>
+        Powered by Web Technology
+    </footer>
 
-  modeSelect.addEventListener('change', (e) => { currentMode = e.target.value; });
-
-  // === ゲームパッド接続 ===
-  window.addEventListener("gamepadconnected", (e) => {
-    gamepadIndex = e.gamepad.index;
-    statusEl.textContent = `接続OK: ${e.gamepad.id}`;
-    statusEl.style.color = "#2e7d32";
-    startBtn.disabled = false;
-    loop();
-  });
-  window.addEventListener("gamepaddisconnected", () => {
-    statusEl.textContent = "コントローラー未接続";
-    startBtn.disabled = true;
-  });
-
-  function loop() {
-    handleInput();
-    requestAnimationFrame(loop);
-  }
-
-  // === 表示用HTML生成 (SVGを使用) ===
-  function getActionHtml(type, index, value) {
-    // スティック
-    if(type === 'axis') {
-      let arrowChar = '';
-      let style = '';
-      if(index===1 && value===1) { arrowChar='↓'; style='top:75%; left:50%; transform:translate(-50%,-50%)'; }
-      if(index===1 && value===-1){ arrowChar='↑'; style='top:25%; left:50%; transform:translate(-50%,-50%)'; }
-      if(index===0 && value===1) { arrowChar='→'; style='top:50%; left:75%; transform:translate(-50%,-50%)'; }
-      if(index===0 && value===-1){ arrowChar='←'; style='top:50%; left:25%; transform:translate(-50%,-50%)'; }
-      return `<div class="stick-bg"><div class="stick-head"></div><div class="arrow" style="${style}">${arrowChar}</div></div>`;
-    }
-
-    // ボタン
-    if(type === 'button') {
-      // L/Rボタン
-      if(index === 4) return `<div class="shoulder-icon">L1 / L</div>`;
-      if(index === 5) return `<div class="shoulder-icon">R1 / R</div>`;
-
-      // PSモード (SVGで描画)
-      if(currentMode === 'ps') {
-        // × (青)
-        if(index === 0) return `
-          <svg viewBox="0 0 100 100">
-            <line x1="20" y1="20" x2="80" y2="80" stroke="#5c6bc0" stroke-width="15" stroke-linecap="round" />
-            <line x1="80" y1="20" x2="20" y2="80" stroke="#5c6bc0" stroke-width="15" stroke-linecap="round" />
-          </svg>`;
-        // ○ (赤)
-        if(index === 1) return `
-          <svg viewBox="0 0 100 100">
-            <circle cx="50" cy="50" r="35" stroke="#ef5350" stroke-width="15" fill="none" />
-          </svg>`;
-        // □ (ピンク)
-        if(index === 2) return `
-          <svg viewBox="0 0 100 100">
-            <rect x="20" y="20" width="60" height="60" stroke="#ec407a" stroke-width="15" fill="none" rx="5" />
-          </svg>`;
-        // △ (緑)
-        if(index === 3) return `
-          <svg viewBox="0 0 100 100">
-            <polygon points="50,15 85,80 15,80" stroke="#26a69a" stroke-width="15" fill="none" stroke-linejoin="round" />
-          </svg>`;
-      } 
-      // Switch / Xbox モード (文字表示)
-      else {
-        let label = '?';
-        if(currentMode === 'switch') label = ['B', 'A', 'Y', 'X'][index];
-        else label = ['A', 'B', 'X', 'Y'][index]; // Xbox
-        return `<div class="char-icon">${label}</div>`;
-      }
-    }
-    return '??';
-  }
-
-  // === ロジック部分 ===
-  const actions = [
-    { type: 'button', index: 0, label: 'South' },
-    { type: 'button', index: 1, label: 'East' },
-    { type: 'button', index: 2, label: 'West' },
-    { type: 'button', index: 3, label: 'North' },
-    { type: 'button', index: 4, label: 'L' },
-    { type: 'button', index: 5, label: 'R' },
-    { type: 'axis', index: 0, val: -1, label: 'Stick ←' },
-    { type: 'axis', index: 0, val: 1,  label: 'Stick →' },
-    { type: 'axis', index: 1, val: -1, label: 'Stick ↑' },
-    { type: 'axis', index: 1, val: 1,  label: 'Stick ↓' },
-  ];
-
-  function handleInput() {
-    const gp = navigator.getGamepads()[gamepadIndex];
-    if (!gp) return;
-    
-    let inputDetected = false;
-    let inputAction = null;
-
-    // ボタン判定
-    for (let i = 0; i < gp.buttons.length; i++) {
-      if (gp.buttons[i].pressed) {
-        inputDetected = true;
-        inputAction = { type: 'button', index: i };
-        break; 
-      }
-    }
-    // スティック判定
-    if (!inputDetected) {
-      if (gp.axes[0] < -0.5) inputAction = { type: 'axis', index: 0, val: -1 };
-      else if (gp.axes[0] > 0.5) inputAction = { type: 'axis', index: 0, val: 1 };
-      else if (gp.axes[1] < -0.5) inputAction = { type: 'axis', index: 1, val: -1 };
-      else if (gp.axes[1] > 0.5) inputAction = { type: 'axis', index: 1, val: 1 };
-      if (inputAction) inputDetected = true;
-    }
-
-    if (state === 'WAITING' && inputDetected) {
-      foul("お手つき！");
-    } else if (state === 'MEASURING' && inputDetected) {
-      if (checkInput(inputAction, targetAction)) finishMeasurement();
-      else foul("入力ミス！");
-    }
-  }
-
-  function checkInput(input, target) {
-    if (input.type !== target.type) return false;
-    if (input.index !== target.index) return false;
-    if (input.type === 'axis') return input.val === target.val;
-    return true;
-  }
-
-  startBtn.addEventListener('click', () => {
-    if (state !== 'IDLE' && state !== 'RESULT') return;
-    state = 'WAITING';
-    displayArea.className = 'waiting';
-    messageText.textContent = "待機...";
-    messageText.style.color = "#888";
-    startBtn.disabled = true;
-
-    const waitTime = Math.random() * 3000 + 2000;
-    measurementTimer = setTimeout(() => {
-      targetAction = actions[Math.floor(Math.random() * actions.length)];
-      iconContainer.innerHTML = getActionHtml(targetAction.type, targetAction.index, targetAction.val || 0);
-      
-      state = 'MEASURING';
-      displayArea.className = 'go'; // 表示切り替え
-      startTime = performance.now();
-    }, waitTime);
-  });
-
-  function finishMeasurement() {
-    const duration = (performance.now() - startTime) / 1000;
-    state = 'RESULT';
-    displayArea.className = 'result';
-    messageText.textContent = `${duration.toFixed(3)}秒`;
-    startBtn.disabled = false;
-    if (duration < bestTime) {
-      bestTime = duration;
-      bestTimeEl.textContent = `${bestTime.toFixed(3)}s`;
-    }
-    addHistory(getLogLabel(targetAction), `${duration.toFixed(3)}s`, "OK");
-  }
-
-  function foul(reason) {
-    clearTimeout(measurementTimer);
-    state = 'RESULT';
-    displayArea.className = 'result';
-    messageText.textContent = reason;
-    messageText.style.color = "#d32f2f";
-    startBtn.disabled = false;
-    addHistory(targetAction ? getLogLabel(targetAction) : "---", "---", reason);
-  }
-
-  function getLogLabel(act) {
-    if(act.type === 'axis') return act.label;
-    if(act.type === 'button') {
-      const i = act.index;
-      if(i===4) return 'Lボタン';
-      if(i===5) return 'Rボタン';
-      if(currentMode === 'ps') return ['×','○','□','△'][i] || 'Btn'+i;
-      else if (currentMode === 'switch') return ['B','A','Y','X'][i] || 'Btn'+i;
-      else return ['A','B','X','Y'][i] || 'Btn'+i;
-    }
-    return '?';
-  }
-
-  function addHistory(name, time, res) {
-    const r = document.createElement('tr');
-    r.innerHTML = `<td>${++trialCount}</td><td>${name}</td><td style="font-weight:bold">${time}</td><td class="${res==='OK'?'':'foul'}">${res}</td>`;
-    historyBody.insertBefore(r, historyBody.firstChild);
-  }
-</script>
 </body>
 </html>
-
