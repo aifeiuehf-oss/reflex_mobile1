@@ -35,4 +35,4 @@ Bluetoothで接続したコントローラー（PS5, Switch, Xboxなど）を使
 - Gamepad API (コントローラー入力の取得)
 
 ---
-Created by Daiki Shibata
+Created by Taiki Shibata🔰
